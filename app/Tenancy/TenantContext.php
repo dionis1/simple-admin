@@ -16,7 +16,7 @@ class TenantContext
     {
         $id = request()->is('api/*') ? request()->attributes->get('api_organization_id') : session(self::SESSION_KEY);
 
-        if (! $user->isActive() || ! $user->hasVerifiedEmail() || ! is_int($id) || $id < 1) {
+        if (! $user->hasActiveVerifiedIdentity() || ! is_int($id) || $id < 1) {
             return null;
         }
 

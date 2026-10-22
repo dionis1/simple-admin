@@ -4,6 +4,15 @@ A Laravel 13 modular monolith built from the [official Livewire starter kit](htt
 
 Phase 1 replaced the Laravel 5.6 / jamesmills admin / Bootstrap / Vue 2 / Mix foundation. Phase 2 adds secure organization membership and tenant-aware authorization. Phase 3 adds identity management; Phase 4 adds governance, restricted support access and quality gates. Git history and the original user migration identities remain intact. **Verified users must select an active organization membership before accessing its dashboard or administration screens.**
 
+## Phase checklist
+
+- [x] Phase 1 — Modern foundation
+- [x] Phase 2 — Multi-tenancy & RBAC
+- [x] Phase 3 — User management & security
+- [x] Phase 4 — Governance & deployment guidance
+
+[Four-phase review and verification limits](docs/phases-review.md). Deployment guidance and local recovery checks are complete; an actual production deployment remains unverified.
+
 ## Included
 
 - Fortify session authentication: registration, sign-in/out, password reset, email verification, and login throttling.

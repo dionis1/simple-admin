@@ -13,7 +13,7 @@ class OrganizationPolicy
 
     public function create(User $user): bool
     {
-        return $user->isActive() && $user->hasVerifiedEmail();
+        return $user->hasActiveVerifiedIdentity();
     }
 
     public function view(User $user, Organization $organization): bool

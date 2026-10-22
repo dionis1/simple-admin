@@ -51,7 +51,7 @@ class SupportAccess
     public function validateGrant(User $actor, SupportGrant $grant): Membership
     {
         // Resolve real support operator even while a read-only subject is set.
-        abort_unless($actor->isActive() && $actor->hasVerifiedEmail()
+        abort_unless($actor->hasActiveVerifiedIdentity()
             && $grant->actor_id === $actor->id && $grant->expires_at->isFuture() && $grant->ended_at === null, 403);
         $permission = $actor->memberships()->where('organization_id', $grant->organization_id)->where('status', 'active')
             ->whereHas('organization', fn ($q) => $q->where('status', 'active'))
@@ -60,7 +60,7 @@ class SupportAccess
         $approval = ApprovalRequest::findOrFail($grant->approval_request_id);
         $reviewer = User::findOrFail($approval->reviewer_id);
         abort_unless($approval->state === 'executed' && $approval->requester_id === $actor->id
-            && $reviewer->isActive() && $reviewer->hasVerifiedEmail()
+            && $reviewer->hasActiveVerifiedIdentity()
             && $reviewer->memberships()->where('organization_id', $grant->organization_id)->where('status', 'active')
                 ->whereHas('roleAssignment.role.permissions', fn ($q) => $q->where('key', PermissionKey::ReviewApproval->value))->exists(), 403);
         $target = Membership::where('organization_id', $grant->organization_id)->findOrFail($grant->target_membership_id);

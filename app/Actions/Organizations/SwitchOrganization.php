@@ -10,7 +10,7 @@ class SwitchOrganization
 {
     public function __invoke(User $actor, int $organizationId): void
     {
-        abort_unless($actor->isActive() && $actor->hasVerifiedEmail(), 403);
+        abort_unless($actor->hasActiveVerifiedIdentity(), 403);
         $membership = $actor->memberships()->where('organization_id', $organizationId)
             ->where('status', AccessStatus::Active)
             ->whereHas('organization', fn ($query) => $query->where('status', AccessStatus::Active))

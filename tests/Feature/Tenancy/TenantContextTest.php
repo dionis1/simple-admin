@@ -107,3 +107,17 @@ it('creates and opens organizations through Livewire and validates names', funct
     $this->assertDatabaseHas('organizations', ['name' => 'New workspace']);
     expect(session(TenantContext::SESSION_KEY))->toBeInt();
 });
+
+it('rejects a previously loaded actor after email verification is revoked', function () {
+    [$owner, $organization] = tenantWorkspace();
+    tenantActor($owner, $organization);
+    $context = app(TenantContext::class);
+    expect($context->allows($owner, 'dashboard.view'))->toBeTrue();
+    // A separate request changes the persisted identity; this actor instance stays stale.
+    User::findOrFail($owner->id)->forceFill(['email_verified_at' => null])->save();
+    expect($owner->hasVerifiedEmail())->toBeTrue()
+        ->and($context->current($owner))->toBeNull()
+        ->and($context->allows($owner, 'memberships.create'))->toBeFalse();
+    expect(fn () => app(CreateOrganization::class)($owner, 'Revoked identity'))->toThrow(AuthorizationException::class);
+    expect(fn () => app(SwitchOrganization::class)($owner, $organization->id))->toThrow(HttpException::class);
+});

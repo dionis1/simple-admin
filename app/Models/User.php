@@ -49,6 +49,11 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->locale ?: 'en';
     }
 
+    public function hasActiveVerifiedIdentity(): bool
+    {
+        return self::query()->whereKey($this->id)->where('status', AccessStatus::Active)->whereNotNull('email_verified_at')->exists();
+    }
+
     public function isActive(): bool
     {
         return self::query()->whereKey($this->id)->where('status', AccessStatus::Active)->exists();

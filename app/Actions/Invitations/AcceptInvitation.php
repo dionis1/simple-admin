@@ -18,7 +18,7 @@ class AcceptInvitation
 {
     public function preview(User $actor, string $token): Invitation
     {
-        abort_unless($actor->isActive() && $actor->hasVerifiedEmail(), 403);
+        abort_unless($actor->hasActiveVerifiedIdentity(), 403);
         $invitation = Invitation::where('token_hash', hash('sha256', $token))->firstOrFail();
         abort_unless(hash_equals($invitation->email, strtolower($actor->email)), 403);
         abort_if($invitation->accepted_at || $invitation->revoked_at || $invitation->expires_at->isPast(), 410, __('This invitation is no longer available.'));

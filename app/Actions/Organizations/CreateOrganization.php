@@ -23,6 +23,7 @@ class CreateOrganization
 
         return DB::transaction(function () use ($actor, $validated) {
             User::query()->lockForUpdate()->findOrFail($actor->id);
+            Gate::forUser($actor)->authorize('create', Organization::class);
             $organization = Organization::create($validated);
             $membership = new Membership;
             $membership->forceFill(['organization_id' => $organization->id, 'user_id' => $actor->id, 'status' => AccessStatus::Active])->save();
