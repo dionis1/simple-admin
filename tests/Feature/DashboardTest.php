@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +20,8 @@ class DashboardTest extends TestCase
     public function test_authenticated_users_can_visit_the_dashboard(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        [, $organization] = tenantWorkspace($user);
+        $this->actingAs($user)->withSession([TenantContext::SESSION_KEY => $organization->id]);
 
         $response = $this->get(route('dashboard'));
         $response->assertOk();

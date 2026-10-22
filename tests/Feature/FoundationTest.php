@@ -16,6 +16,8 @@ it('requires a verified account before showing the workspace', function () {
         ->assertRedirect(route('verification.notice'));
 
     $user->markEmailAsVerified();
+    [, $organization] = tenantWorkspace($user);
+    tenantActor($user, $organization);
     $this->get(route('dashboard'))->assertOk()
         ->assertSee('Workspace overview')
         ->assertSee('Account settings');

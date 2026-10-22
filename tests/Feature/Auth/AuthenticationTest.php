@@ -28,7 +28,7 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('organizations.index', absolute: false));
 
         $this->assertAuthenticated();
     }
