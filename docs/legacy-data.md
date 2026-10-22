@@ -18,9 +18,16 @@ The new application is configured for PostgreSQL. Laravel migrations do not copy
 2. Inventory package migrations/tables and user foreign keys. Decide explicitly which concepts and historical records are retained for later phases. Do not run package rollback/uninstall migrations.
 3. Build and rehearse an import into a separate PostgreSQL database, preserving IDs, password hashes, and timestamps. Reset identity sequences after importing IDs. Audit case-folded duplicate emails before normalizing them.
 4. Reconcile the migration ledger with the two retained baselines and any previously published migrations. Only then apply the new migrations in staging. Unexpected table/column collisions deliberately fail; this code does not silently skip schema mismatches.
-5. Verify user counts, representative authentication, verification email delivery, password reset, retained relationships, and planned future authorization. The current dashboard is available to every verified account; it is not an RBAC substitute.
+5. Verify user counts, representative authentication, verification email delivery, password reset, retained relationships, and planned future authorization. Phase 2 dashboard access requires a validated active membership; legacy roles and privileges are not mapped automatically.
 6. Plan cutover, write freeze, key/secret handling, and rollback from the tested backup. Avoid resuming writes to two divergent databases. Keep the original database intact until reconciliation is approved.
 
 Never use `migrate:fresh`, `db:wipe`, `migrate:reset`, or volume deletion against an existing/production database. Rolling back the new auth migration removes verification timestamps and new reset/session records; it is not a data-preserving production rollback. Existing reset records remain confidential and need a separately reviewed retention policy.
 
 The included upgrade regression test verifies only the repository's known user/reset schema and additive auth migration. It cannot establish compatibility with unknown production tables, data, or package migrations. Production migration remains blocked on that inventory and staging rehearsal; no production data was supplied during Phase 1.
+
+
+## Phase 2 schema and authorization
+
+Phase 2 creates `organizations`, `memberships`, `roles`, `permissions`, `permission_role`, and `role_assignments`. These names may collide with tables or migration names from an installed legacy admin package. **Do not apply the migration blindly to such a database.** Inventory and reconcile those schemas in staging first. The migration intentionally fails on collisions and does not drop, rename, import, or assign privileges from legacy tables.
+
+Existing users receive no automatic organization membership or inherited global privileges. After verification they can create their own new organization or be added by an authorized Owner/Admin. Initial ownership belongs only to the creator of that new organization. The old user IDs and hashes remain unchanged. Organization removal/import/production cutover are outside Phase 2. Account deletion is blocked while a user has memberships; the PostgreSQL foreign key also restricts direct user deletion.
