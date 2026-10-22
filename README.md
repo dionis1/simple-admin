@@ -1,40 +1,108 @@
-# Simple Admin — Phase 4
+# Simple Admin — Enterprise Multi-Tenant Administration Platform
 
-A Laravel 13 modular monolith built from the [official Livewire starter kit](https://github.com/laravel/livewire-starter-kit). PHP 8.3+ (Docker uses 8.4), Livewire 4, Flux UI, Tailwind CSS 4, Vite, PostgreSQL 17, and Redis 7.4.
+An administration workspace for managing organizations, people, and access from one application. Teams can invite colleagues, assign responsibilities, review sensitive requests, and trace administrative activity while keeping each organization's data separate.
 
-Phase 1 replaced the Laravel 5.6 / jamesmills admin / Bootstrap / Vue 2 / Mix foundation. Phase 2 adds secure organization membership and tenant-aware authorization. Phase 3 adds identity management; Phase 4 adds governance, restricted support access and quality gates. Git history and the original user migration identities remain intact. **Verified users must select an active organization membership before accessing its dashboard or administration screens.**
+Built with Laravel and Livewire, this portfolio project demonstrates secure identity management, tenant-aware authorization, and tested governance workflows. It modernizes a legacy Laravel 5.6 application while preserving its Git history and documenting migration limits.
 
-## Phase checklist
+![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![PHP 8.3+](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)
+![Livewire 4](https://img.shields.io/badge/Livewire-4-FB70A9?logo=livewire&logoColor=white)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Redis 7.4](https://img.shields.io/badge/Redis-7.4-DC382D?logo=redis&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Pest 4](https://img.shields.io/badge/Pest-4-6B46C1)
+[![GitHub Actions CI](https://github.com/dionis1/simple-admin/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dionis1/simple-admin/actions/workflows/ci.yml)
 
-- [x] Phase 1 — Modern foundation
-- [x] Phase 2 — Multi-tenancy & RBAC
-- [x] Phase 3 — User management & security
-- [x] Phase 4 — Governance & deployment guidance
+[Features](#key-features) · [Engineering](#engineering-highlights) · [Run locally](#getting-started) · [Verification](#testing-and-quality) · [Documentation](#technical-documentation)
 
-[Four-phase review and verification limits](docs/phases-review.md). Deployment guidance and local recovery checks are complete; an actual production deployment remains unverified.
+## Application Screenshots
 
-## Included
+Real screens from the local Docker application using an entirely synthetic **Northstar Studio** workspace. These are application captures, not design mockups. Click an image to inspect it at full size.
 
-- Fortify session authentication: registration, sign-in/out, password reset, email verification, and login throttling.
-- Starter-kit account/profile, password confirmation/change, account deletion, and appearance settings.
-- Responsive sidebar, mobile navigation, account menu, and permission-scoped activity dashboard.
-- PostgreSQL persistence, database sessions, Redis cache and queue connection.
-- Pest with starter-kit authentication/Livewire tests, Pint, Larastan level 7, and basic GitHub Actions checks.
-- No seeded accounts or default application passwords. Registration creates an unverified user.
-- Multiple organizations per user, with server-validated organization switching.
-- Organization-scoped Owner, Admin, Manager, Support, and Viewer roles, resource/action permissions, policies, and Gates.
-- Livewire organization creation/rename, member addition/role changes/suspension/removal, and read-only role/permission catalogs.
-- Cross-tenant foreign keys, transaction locks, final-active-owner protection, and negative authorization tests.
+![Dashboard showing organization activity, pending invitations, approval requests and service health](docs/screenshots/dashboard.jpg)
 
-See [tenancy and authorization](docs/tenancy.md) for the exact permission matrix, trust boundaries, ownership rules, and scope limitations.
+**Dashboard overview.** Permission-scoped activity, invitations, approvals, security events, and service health in one place.
 
-## Run locally with Docker Compose
+| Organizations & people | Access & structure |
+| --- | --- |
+| [![Organization management](docs/screenshots/organizations.jpg)](docs/screenshots/organizations.jpg) | [![Roles and their permissions](docs/screenshots/roles-permissions.jpg)](docs/screenshots/roles-permissions.jpg) |
+| **Organization management** — manage the active workspace. | **Roles & permissions** — inspect the fixed access catalog. |
+| [![Membership management](docs/screenshots/users.jpg)](docs/screenshots/users.jpg) | [![Teams and departments](docs/screenshots/teams-departments.jpg)](docs/screenshots/teams-departments.jpg) |
+| **Memberships** — search, filter, and administer organization access. | **Teams & departments** — organize people and assign team ownership. |
 
-Prerequisite: Docker Engine/Desktop with Compose v2. Host PHP and Node installations are unnecessary.
+| Invitations & governance | History & account security |
+| --- | --- |
+| [![Pending invitations](docs/screenshots/invitations.jpg)](docs/screenshots/invitations.jpg) | [![Searchable audit history](docs/screenshots/audit-history.jpg)](docs/screenshots/audit-history.jpg) |
+| **Invitations** — track pending invitations and their expiry. | **Audit history** — inspect sensitive changes with tenant-scoped access. |
+| [![Approval workflows](docs/screenshots/approvals.jpg)](docs/screenshots/approvals.jpg) | [![Account security and two-factor authentication settings](docs/screenshots/account-security.jpg)](docs/screenshots/account-security.jpg) |
+| **Approvals** — review requests for supported high-risk operations. | **Account security** — inspect account status and the TOTP enrollment entry point. |
+
+[Capture details, additional screens, and visual verification limits](docs/screenshots/README.md).
+
+## Key Features
+
+| Area | What users can do |
+| --- | --- |
+| Organizations | Belong to multiple organizations and switch between authorized workspaces. |
+| Membership administration | Invite, edit, suspend, deactivate, and reactivate memberships; perform permission-checked bulk operations. |
+| Access control | Assign Owner, Admin, Manager, Support, or Viewer roles; inspect resource/action permissions. |
+| Invitations & security | Use expiring invitations, verified email, password resets, TOTP, recovery codes, and session revocation. |
+| Teams & departments | Group memberships into departments and teams with designated team owners. |
+| Approval workflows | Request independent approval for organization-wide API-token revocation or temporary support access. |
+| Audit & support | Search redacted audit events, export permitted CSV data, and use approved, time-limited, read-only support views. |
+| Dashboard & filtering | Review workspace activity and security events; search, filter, sort, and paginate management lists. |
+| API & localization | Use scoped, expiring Sanctum tokens for membership API endpoints; switch between English and German. |
+
+## Engineering Highlights
+
+The engineering decisions are backed by implementation and behavioral tests:
+
+| Design decision | Why it matters | Evidence |
+| --- | --- | --- |
+| Fresh tenant context | Rechecks identity and active membership; browser-supplied IDs never establish authority. | [Tenant context tests](tests/Feature/Tenancy/TenantContextTest.php) |
+| Tenant-aware policies | Combines resource permissions, membership status, and role hierarchy on the server. | [Permission matrix](tests/Feature/Tenancy/PermissionMatrixTest.php) · [Tenancy design](docs/tenancy.md) |
+| Privilege-escalation prevention | Blocks self-promotion, unauthorized assignments, and removal of the final active owner. | [Membership security](tests/Feature/Tenancy/MembershipSecurityTest.php) · [Owner concurrency](tests/Feature/Tenancy/OwnerConcurrencyTest.php) |
+| PostgreSQL integrity constraints | Composite foreign keys and unique constraints prevent invalid cross-tenant relationships. | [Database constraint tests](tests/Feature/Tenancy/DatabaseConstraintsTest.php) |
+| Transaction-safe operations | Row locks protect sensitive changes; approval effects and audit records commit or roll back together. | [Approval tests](tests/Feature/Governance/ApprovalsTest.php) · [Governance races](tests/Feature/Governance/ConcurrencyTest.php) |
+| Automated security testing | Exercises revoked access, invitation/MFA single use, audit redaction, and support-session boundaries. | [Credential races](tests/Feature/Identity/ConcurrentCredentialsTest.php) · [Audit](tests/Feature/Governance/AuditTest.php) · [Support access](tests/Feature/Governance/ImpersonationTest.php) |
+| Continuous integration & quality | Checks formatting, static analysis, tests, frontend assets, and dependency advisories. | [CI workflow](.github/workflows/ci.yml) · [Current results](#testing-and-quality) |
+| Explicit threat boundaries | Documents what is protected, what requires operational controls, and what remains unverified. | [Threat model](docs/threat-model.md) |
+
+Concurrency tests use independent PHP processes and real PostgreSQL lock waits. Authorization is enforced through the current membership rather than a global administrator bypass. CI is implemented; automated production deployment is outside this repository's scope.
+
+## Architecture Overview
+
+A **modular monolith**: one Laravel application, one PostgreSQL database, and cohesive modules for tenancy, identity, and governance. Livewire screens and API controllers handle transport; policies decide access; focused actions coordinate business rules and transactions.
+
+```mermaid
+flowchart LR
+    UI[Livewire screens] --> Auth[Session authentication]
+    API[Versioned membership API] --> Token[Scoped Sanctum token]
+    Auth --> Tenant[Fresh tenant context]
+    Token --> Tenant
+    Tenant --> Policy[Policies and Gates]
+    Policy --> Action[Application actions]
+    Action --> DB[(PostgreSQL)]
+    Action --> Queue[Redis queue]
+    Queue --> Worker[Notification worker]
+```
+
+Fortify supplies authentication and TOTP. Tailwind CSS 4, Flux UI, and Vite 8 support the interface. Redis provides cache and queues; PostgreSQL stores identities, memberships, sessions, and audit history.
+
+See the [architecture map and modernization decisions](docs/architecture.md) and [contributor conventions](AGENTS.md).
+
+## Getting Started
+
+**Prerequisite:** Docker Engine/Desktop with Compose v2. Host PHP and Node installations are unnecessary. Docker runs PHP 8.4; PHP 8.3 is the minimum Composer/CI target.
+
+For a **new local installation**:
 
 ```bash
+git clone https://github.com/dionis1/simple-admin.git
+cd simple-admin
 cp .env.example .env
-# On Linux, set LOCAL_UID/LOCAL_GID in .env if your IDs differ from 1000.
+# Linux: set LOCAL_UID / LOCAL_GID in .env if your IDs differ from 1000.
 docker compose build app
 docker compose up -d postgres redis
 docker compose run --rm --no-deps app composer install
@@ -45,104 +113,85 @@ docker compose run --rm --no-deps node npm run build
 docker compose up -d app worker
 ```
 
-Open [localhost:8000](http://localhost:8000). `APP_PORT` changes the host port; update `APP_URL` to match. PostgreSQL and Redis are internal services without published host ports. The PHP development server and bind mounts are for local use.
+Open [localhost:8000](http://localhost:8000), then:
 
-Register through the interface. The default `MAIL_MAILER=log` writes verification and reset links to `storage/logs/laravel.log`. Use the link to verify your address. Sign-in and verification then lead to the organization picker. Create an organization to become its initial Owner, or ask an existing Owner/Admin to add your verified account. Choose an organization to enter its dashboard. For real email delivery configure the mail environment variables with your SMTP provider; log mail is not delivered externally. Keep `.env`, application keys, passwords, and logged links private.
+1. Register a new account. There are no default accounts or passwords.
+2. Verify your email using the link in the private `storage/logs/laravel.log` file. Local mail is logged; it is not delivered to an inbox.
+3. Create an organization to become its initial Owner, or accept an invitation from an authorized administrator.
+4. Select the organization to access its dashboard and permitted management screens.
 
 ```bash
-# Watch local mail links / application output
-docker compose logs -f app
-# Log mail is in this file, not necessarily the container stdout:
-tail -f storage/logs/laravel.log
-
-# Stop services and release their RAM; persisted data remains.
+# Stop services and release RAM while preserving database volumes.
 docker compose down
-# Start again without reinstalling:
+# Resume the existing installation.
 docker compose up -d app worker
 ```
 
-Do not use `docker compose down -v` unless you deliberately want to delete this project's local database/cache volumes. Keep your existing APP_KEY; rotating it invalidates encrypted sessions.
+Keep `.env`, `APP_KEY`, and logged verification links private. Do not overwrite an existing `.env`, regenerate its key, or delete volumes as an update procedure. Existing production data requires a separate migration plan: read [legacy data limitations](docs/legacy-data.md) first.
 
-For frontend development run `docker compose run --rm --no-deps node npm run build` after changes, or use Node 22.13+ (22.x) or 24+ locally with `npm run dev`. This setup does not publish a container Vite development server. The worker processes queued invitations and security notifications. Restart it after changing PHP code: `docker compose restart worker`. Default mail is logged locally; configure SMTP for external delivery.
+[Detailed local setup, mail, frontend development, and updates](docs/local-development.md).
 
-## Verification
+## Testing and Quality
 
-Tests use a **separate PostgreSQL database**, `simple_admin_testing`, forced in `phpunit.xml`. Never point tests at production infrastructure. PostgreSQL's initialization script creates the test database on a new local volume. If the volume predates this configuration, create it once:
+**Local verification rechecked on 2026-10-22:** **309 tests / 836 assertions**, Pint, and Larastan level 7 passed through Docker `composer check`. Migration status and Redis connectivity also passed. The earlier [four-phase review](docs/phases-review.md) additionally records frontend lint/build, dependency scans, and view compilation; those checks were not repeated for this documentation-only update. These are dated results, not a coverage percentage or a production-readiness claim.
 
-```bash
-docker compose exec postgres sh -c 'createdb -U "$POSTGRES_USER" simple_admin_testing'
-```
+**Remote CI:** an [earlier recorded run on commit `73c6936`](https://github.com/dionis1/simple-admin/actions/runs/39768845496) reported a Pint formatting failure. This documentation review did not recheck remote run results. Consult the live badge and linked workflow for current status; local success does not establish a green GitHub run.
 
-The [Phase 4 verification record](docs/phase-4-verification.md) lists completed checks and remaining limitations. Run the same checks used by CI:
+**CI formatting follow-up:** a fresh-cache Pint run reproduced `method_argument_space` failures in two identity test files that the earlier cached local check missed. Four calls were formatted, and a second fresh-cache check passed across all 161 PHP files. The fix still requires a pushed GitHub Actions run to confirm remote success.
 
-```bash
-docker compose run --rm app php artisan migrate
-docker compose run --rm app composer check
-# Individual checks:
-docker compose run --rm app composer test
-docker compose run --rm app composer lint:check
-docker compose run --rm app composer analyse
-docker compose run --rm --no-deps node npm ci
-docker compose run --rm --no-deps node npm run build
-docker compose run --rm app php artisan app:check-redis
-```
-
-Pest runs both Pest scenarios and the upstream starter-kit PHPUnit-style tests. Coverage includes registration, verification (including invalid signatures/hashes), password reset, sign-in/out, profile/password changes, Livewire validation, dashboard access, throttling, removed legacy endpoints, preservation of legacy users/password hashes during the additive auth migration, tenant isolation, the full permission matrix, role-assignment hierarchy, revoked Livewire access, and simultaneous final-owner changes on independent PostgreSQL connections. The Redis check writes and removes a unique short-lived cache key. CI runs PHP 8.3 with PostgreSQL and Redis, migrations, all PHP checks, and the frontend build. The Docker runtime uses PHP 8.4; Composer resolves dependencies against PHP 8.3 to retain that minimum version.
-
-## Architecture and decisions
-
-- One Laravel application and database. Authentication and organization access are cohesive application modules; there are no microservices or speculative domain layers.
-- `app/Actions/Fortify`: starter-kit user creation and password reset actions.
-- `app/Models/User.php`: authenticated identity, hashing casts, verification contract.
-- `app/Providers/FortifyServiceProvider.php`: authentication views, actions, responses, and rate limits.
-- `resources/views/pages`: Livewire account components and authentication views; `layouts` and `components` hold shared presentation.
-- `app/Actions/Organizations` and `app/Actions/Memberships`: transactional organization and membership operations.
-- `app/Tenancy`: fresh membership resolution and final-owner invariant checks.
-- `app/Policies` and `app/Enums`: server-side resource permissions and fixed roles/statuses.
-- `app/Livewire`: organization/member screens and role/permission catalog presentation.
-- `routes/web.php` and `routes/settings.php`: public/account routes, organization picker, and tenant routes protected by authentication, verification, tenant middleware, and authorization.
-- `database/migrations`: retained legacy baselines plus additive infrastructure/authentication changes.
-- `tests/Feature`: HTTP, Livewire, and upgrade behavior; factories provide isolated users.
-
-The official starter source was imported from commit `0f62a26c4e4b401c1300930f47d72a497add8cce`. Registration, email verification, and password confirmation were selected with its installer. Optional passkeys and 2FA were excluded from Phase 1; Fortify may retain their transitive dependencies. Installer-only tooling was removed. Plain Vite replaces upstream Vite Plus; system fonts avoid remote font downloads during builds. Dependency lockfiles are committed. Existing user IDs remain 32-bit to avoid silently changing unknown legacy foreign keys.
-
-Use Laravel-native validation, policies when domain resources arrive, transactions for multi-write behavior, and actions only where business behavior warrants them. Do not add repositories or service layers around ordinary Eloquent queries. Local/test lazy-loading prevention catches accidental N+1 queries. Production destructive Artisan commands are prohibited by the starter-kit provider.
-
-## Existing data is not automatically migrated
-
-Read [the legacy data migration limitations](docs/legacy-data.md) **before using an existing database**. This is a new application foundation, not a verified in-place production upgrade or a MySQL-to-PostgreSQL importer. No production database was accessed or modified. The local setup creates a new, namespaced PostgreSQL volume.
-
-## Scope after Phase 4
-
-The dashboard now shows permission-scoped activity, invitations, approvals, security events and service health. Custom-role editing, organization suspension/deletion screens, business CRUD, analytics, production deployment, and legacy data import remain future work. Account self-deletion remains blocked while memberships exist.
-
-## Identity management
-
-Phase 3 adds expiring single-use invitations, organization-scoped membership profiles and lifecycle management, departments, teams and ownership, atomic permission-checked bulk operations, English/German interfaces, native Fortify TOTP and recovery codes, session revocation, and scoped Sanctum API tokens. Search, filters, sorting and pagination are available on management screens.
-
-See [identity management](docs/identity.md) for security decisions, account lifecycle, API endpoints and operational instructions. Organization administrators manage memberships rather than disabling a person's identity across unrelated organizations. Global account deactivation/reactivation is self-service; global suspension is a trusted operator state.
-
-Fortify two-factor authentication, excluded in Phase 1, is enabled in Phase 3. Passkeys remain excluded. No default accounts or passwords are provided.
-
-## Governance and operational quality
-
-- Structured, redacted audit events with actor/tenant/target/correlation identifiers and transactional persistence; PostgreSQL rejects audit row updates/deletes.
-- Independent approval for organization-wide API token revocation and temporary support access, with explicit states, expiry and concurrency protection.
-- Read-only support view with password + confirmed TOTP step-up, independent reviewer, one-session binding, a 15-minute deadline, visible banner and audited access.
-- Searchable tenant audit history and separately permission-controlled, bounded CSV exports.
-- `/up` liveness, generic `/ready` dependency/worker readiness, JSON security logs and sanitized tenant queue failures.
-- CI gates for Pest, Pint, Larastan, ESLint, frontend build, Blade compilation and Composer/npm dependency scans.
-
-See [governance and exact workflow scope](docs/governance.md), [threat model](docs/threat-model.md), [API examples](docs/api-examples.md), and [deployment, backup restoration and migration safety](docs/operations.md). The provided Compose setup remains local development only; this phase does not establish production readiness.
-
-After updating an existing local checkout:
+Tests use the dedicated **`simple_admin_testing`** database and reset its schema. Fresh Docker volumes create it automatically; see [test database setup](docs/local-development.md#tests-use-a-separate-database) for existing volumes. Never run these tests against application or production data.
 
 ```bash
-docker compose exec app php artisan migrate
+docker compose exec app composer check
+docker compose exec app composer audit --locked --no-interaction
 docker compose run --rm --no-deps node npm ci
 docker compose run --rm --no-deps node npm run lint
 docker compose run --rm --no-deps node npm run build
-docker compose restart worker
+docker compose run --rm --no-deps node npm audit --audit-level=low
+docker compose exec app php artisan view:cache
+docker compose exec app php artisan app:check-redis
 ```
 
-Visit Dashboard, Audit history or Approvals according to your membership permissions. Two distinct authorized accounts are needed to review an approval; no default credentials are supplied. Support operators must enroll and confirm TOTP on their own account before starting an approved support grant.
+| Tool | Purpose |
+| --- | --- |
+| Pest 4 + starter-kit PHPUnit tests | HTTP, Livewire, authentication, tenant boundaries, negative cases, and concurrency. |
+| Laravel Pint | PHP formatting checks. |
+| Larastan level 7 | Static analysis of application code. |
+| ESLint + Vite | JavaScript/config lint and frontend production build. |
+| Composer/npm audit | Time-specific dependency advisory checks, including development dependencies. |
+| GitHub Actions | Repeats quality gates with PHP 8.3, PostgreSQL, and Redis. |
+
+The [screenshot verification record](docs/screenshots/README.md) describes this documentation update's browser checks. It does not replace the automated security suite.
+
+## Technical Documentation
+
+| Guide | Contents |
+| --- | --- |
+| [Architecture](docs/architecture.md) | Module boundaries, directory map, and modernization decisions. |
+| [Tenancy & authorization](docs/tenancy.md) | Role matrix, policies, ownership rules, and tenant isolation. |
+| [Identity management](docs/identity.md) | Invitations, membership lifecycle, teams, MFA, sessions, and API tokens. |
+| [Governance](docs/governance.md) | Audit guarantees, approval states, support restrictions, and exact workflow scope. |
+| [Threat model](docs/threat-model.md) | Trust boundaries, mitigations, and residual risks. |
+| [API examples](docs/api-examples.md) | Scoped authentication and membership request/response examples. |
+| [Local development](docs/local-development.md) | Installation, mail, assets, testing, and safe updates. |
+| [Operations](docs/operations.md) | Deployment prerequisites, health/logs, backup restoration, and migration safety. |
+| [Legacy data](docs/legacy-data.md) | Preserved migration identities and limitations of importing existing data. |
+| [Four-phase review](docs/phases-review.md) | Implementation evidence and verification boundaries across all four phases. |
+| [Contribution conventions](AGENTS.md) | Architecture, security rules, and verification commands. |
+
+## Project Status and Limitations
+
+- [x] Phase 1 — Modern foundation
+- [x] Phase 2 — Multi-tenancy & RBAC
+- [x] Phase 3 — User management & security
+- [x] Phase 4 — Governance & deployment guidance
+
+These phases describe the implemented application scope. The repository is a portfolio project with local verification, not a certified production service.
+
+- **Fixed roles:** the five role catalogs are read-only; a custom-role builder and organization suspension/deletion screens are not implemented.
+- **Scoped administration:** administrators manage organization memberships, not another person's global identity across unrelated organizations.
+- **Bounded approvals:** independent approval covers organization-wide token revocation and support access. Ordinary membership changes use their existing policies and ownership safeguards.
+- **Restricted support:** approved views are read-only, bound to one browser session, and expire 15 minutes after approval. Starting requires a fresh password and confirmed TOTP.
+- **Audit limits:** supported application paths are audited; database superusers and arbitrary SQL are outside these guarantees. Retention/erasure policy needs an operational decision.
+- **Outstanding verification:** current remote CI status was not rechecked during this documentation review. Production deployment, external SMTP, legacy production import, load testing, and a full disaster-recovery drill remain unverified. A local database restore rehearsal is recorded in [Phase 4 verification](docs/phase-4-verification.md).
+- **Future scope:** business modules, analytics, custom roles, and production deployment automation are not included. Docker Compose is for local development.

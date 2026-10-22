@@ -96,8 +96,8 @@ it('only permits revoking the actors own tokens and never authenticates API requ
     $other = User::factory()->create();
     $this->actingAs($other);
     expect(fn () => app(RevokeApiToken::class)($other, 'password', $record->id))->toThrow(ModelNotFoundException::class);
-    tenantActor($owner,$org);
+    tenantActor($owner, $org);
     $this->getJson('/api/v1/memberships')->assertUnauthorized();
-    app(RevokeApiToken::class)($owner,'password',$record->id);
-    identityApi('GET','/api/v1/memberships',$token)->assertUnauthorized();
+    app(RevokeApiToken::class)($owner, 'password', $record->id);
+    identityApi('GET', '/api/v1/memberships', $token)->assertUnauthorized();
 });

@@ -139,6 +139,6 @@ it('enforces composite foreign keys on structure assignments', function () {
     [, $foreign] = tenantWorkspace();
     tenantActor($owner, $org);
     $own = $org->memberships()->firstOrFail();
-    $team = app(SaveTeam::class)($owner,0,'Team',$own->id,null);
+    $team = app(SaveTeam::class)($owner, 0, 'Team', $own->id, null);
     expect(fn () => DB::transaction(fn () => DB::table('team_memberships')->insert(['organization_id' => $org->id, 'team_id' => $team->id, 'membership_id' => $foreign->memberships()->firstOrFail()->id])))->toThrow(QueryException::class);
 });
