@@ -15,6 +15,8 @@
                     <flux:sidebar.item icon="building-office" :href="route('organizations.index')" :current="request()->routeIs('organizations.index')" wire:navigate>{{ __('Switch organization') }}</flux:sidebar.item>
                     @php($activeMembership = app(\App\Tenancy\TenantContext::class)->current(auth()->user()))
                     @if ($activeMembership)
+                        @can('viewAny', \App\Models\AuditEvent::class)<flux:sidebar.item :href="route('audit.index')" :current="request()->routeIs('audit.*')" wire:navigate>{{ __('Audit history') }}</flux:sidebar.item>@endcan
+                        @can('viewAny', \App\Models\ApprovalRequest::class)<flux:sidebar.item :href="route('approvals.index')" :current="request()->routeIs('approvals.*')" wire:navigate>{{ __('Approvals') }}</flux:sidebar.item>@endcan
                         @can('viewAny', \App\Models\Invitation::class)<flux:sidebar.item :href="route('invitations.index')" :current="request()->routeIs('invitations.*')" wire:navigate>{{ __('Invitations') }}</flux:sidebar.item>@endcan
                         @can('viewAny', \App\Models\Team::class)<flux:sidebar.item :href="route('structure.index')" :current="request()->routeIs('structure.index')" wire:navigate>{{ __('Teams and departments') }}</flux:sidebar.item>@endcan
                         <flux:sidebar.item :href="route('organization.show')" :current="request()->routeIs('organization.show')" wire:navigate>{{ $activeMembership->organization()->firstOrFail()->name }}</flux:sidebar.item>

@@ -1,7 +1,13 @@
 <?php
 
+use App\Actions\Governance\SupportAccess;
 use App\Enums\PermissionKey;
+use App\Governance\Health;
+use App\Http\Controllers\AuditExportController;
 use App\Http\Middleware\EnsureTenantContext;
+use App\Livewire\Governance\Approvals;
+use App\Livewire\Governance\Dashboard;
+use App\Livewire\Governance\History;
 use App\Livewire\Invitations\Accept;
 use App\Livewire\Organizations\Index;
 use App\Livewire\Organizations\Show;
@@ -28,7 +34,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('organizations', Index::class)->name('organizations.index');
 
     Route::middleware(EnsureTenantContext::class)->group(function () {
-        Route::view('dashboard', 'dashboard')->middleware('can:tenant.permission,"'.PermissionKey::ViewDashboard->value.'"')->name('dashboard');
+        Route::get('dashboard', Dashboard::class)->middleware('can:tenant.permission,"'.PermissionKey::ViewDashboard->value.'"')->name('dashboard');
+        Route::get('audit', History::class)->name('audit.index');
+        Route::get('audit/export', AuditExportController::class)->middleware('throttle:6,1')->name('audit.export');
+        Route::get('approvals', Approvals::class)->name('approvals.index');
         Route::get('organization', Show::class)->name('organization.show');
         Route::get('invitations', App\Livewire\Invitations\Index::class)->name('invitations.index');
         Route::get('structure', App\Livewire\Structure\Index::class)->name('structure.index');
@@ -37,5 +46,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('permissions', App\Livewire\Permissions\Index::class)->name('permissions.index');
     });
 });
+
+Route::post('support/stop', function (Request $request) {
+    $actor = $request->user();
+    abort_unless($actor instanceof User, 403);
+    app(SupportAccess::class)->stop($actor);
+
+    return redirect()->route('dashboard');
+})->middleware('auth')->name('support.stop');
+
+Route::get('ready', function () {
+    $checks = app(Health::class)->check();
+    $ready = $checks['database'] && $checks['cache'] && $checks['worker'];
+
+    return response()->json(['status' => $ready ? 'ok' : 'unavailable'], $ready ? 200 : 503)->header('Cache-Control', 'no-store');
+})->middleware('throttle:60,1')->name('health.ready');
 
 require __DIR__.'/settings.php';
