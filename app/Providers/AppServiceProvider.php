@@ -2,17 +2,22 @@
 
 namespace App\Providers;
 
+use App\Actions\Governance\SupportAccess;
 use App\Actions\Security\RevokeCredentials;
 use App\Enums\AccessStatus;
 use App\Enums\PermissionKey;
+use App\Governance\Audit;
+use App\Governance\QueueVisibility;
 use App\Http\Middleware\AccountAccess;
 use App\Http\Middleware\EnsureTenantContext;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SupportSession;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Notifications\SecurityNotice;
 use App\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -48,10 +53,22 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        app(QueueVisibility::class)->register();
+        Gate::before(function (User $user, string $ability): ?bool {
+            if (session()->has(SupportAccess::SESSION_KEY) && ! in_array($ability, ['tenant.permission', 'view', 'viewAny'], true)) {
+                return false;
+            }
+
+            return null;
+        });
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by((string) $request->user()?->getAuthIdentifier()));
+        Event::listen(Failed::class, function ($event): void {
+            app(Audit::class)->record('security.login_failed', null, 'Authentication', null);
+        });
         Event::listen(Login::class, function ($event): void {
             if ($event->user instanceof User) {
+                app(Audit::class)->record('security.login', null, 'User', $event->user->id, [], $event->user);
                 $event->user->notify(new SecurityNotice('A new sign-in was detected.'));
             }
         });
@@ -75,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         Gate::define('tenant.permission', fn (User $user, PermissionKey|string $permission): bool => app(TenantContext::class)->allows($user, $permission));
-        Livewire::addPersistentMiddleware([EnsureTenantContext::class, AccountAccess::class, SetLocale::class, RequirePassword::class]);
+        Livewire::addPersistentMiddleware([EnsureTenantContext::class, AccountAccess::class, SetLocale::class, RequirePassword::class, SupportSession::class]);
     }
 
     /**

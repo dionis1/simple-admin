@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Middleware\AccountAccess;
+use App\Http\Middleware\CorrelateRequest;
 use App\Http\Middleware\SerializeMfa;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SupportSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [AccountAccess::class, SerializeMfa::class, SetLocale::class]);
+        $middleware->append(CorrelateRequest::class);
+        $middleware->web(append: [AccountAccess::class, SupportSession::class, SerializeMfa::class, SetLocale::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

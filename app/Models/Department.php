@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 
 /** @property int $id
@@ -10,5 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Department extends Model
 {
+    use TransactionalAudit;
+
     protected $guarded = ['*'];
 }

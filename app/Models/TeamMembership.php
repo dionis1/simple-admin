@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TeamMembership extends Model
 {
+    use TransactionalAudit;
+
     /** @return BelongsTo<Membership, $this> */
     public function membership(): BelongsTo
     {

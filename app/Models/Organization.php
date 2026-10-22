@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccessStatus;
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Organization extends Model
 {
+    use TransactionalAudit;
+
     protected $fillable = ['name'];
 
     protected function casts(): array

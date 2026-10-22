@@ -2,6 +2,7 @@
 
 namespace App\Actions\Security;
 
+use App\Actions\Governance\SupportAccess;
 use App\Enums\AccessStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,7 @@ class ConfirmPassword
 {
     public function __invoke(User $actor, string $password): User
     {
+        abort_if(session()->has(SupportAccess::SESSION_KEY), 403);
         $key = 'security-password:'.$actor->id.'|'.request()->ip();
         $user = User::findOrFail($actor->id);
         abort_if($user->status === AccessStatus::Suspended, 403);

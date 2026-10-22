@@ -2,6 +2,7 @@
 
 namespace App\Tenancy;
 
+use App\Actions\Governance\SupportAccess;
 use App\Enums\AccessStatus;
 use App\Enums\PermissionKey;
 use App\Models\Membership;
@@ -17,6 +18,12 @@ class TenantContext
 
         if (! $user->isActive() || ! $user->hasVerifiedEmail() || ! is_int($id) || $id < 1) {
             return null;
+        }
+
+        if (request()->attributes->get('support_actor_id') === $user->id) {
+            $subjectId = request()->attributes->get('support_subject_id');
+            abort_unless(is_int($subjectId), 403);
+            $user = User::findOrFail($subjectId);
         }
 
         // Never reuse a hydrated component, cached relationship, or browser permission list.
@@ -38,6 +45,10 @@ class TenantContext
     {
         $membership = $this->current($user);
         $key = $permission instanceof PermissionKey ? $permission->value : $permission;
+
+        if (session()->has(SupportAccess::SESSION_KEY) && ! in_array($key, ['dashboard.view', 'organizations.view', 'teams.view', 'departments.view'], true)) {
+            return false;
+        }
 
         if (request()->attributes->has('api_organization_id') && ! $user->tokenCan($key)) {
             return false;

@@ -37,7 +37,7 @@ class UpdateMembership
             app(OwnerProtection::class)->ensureMayChange($target, $role->name, AccessStatus::from($status));
             $changed = $target->status->value !== $status || $currentRole->id !== $role->id;
             $target->forceFill(['status' => $status])->save();
-            $target->roleAssignment()->update(['role_id' => $role->id]);
+            $target->roleAssignment()->firstOrFail()->forceFill(['role_id' => $role->id])->save();
             if ($status !== 'active' || $currentRole->id !== $role->id) {
                 PersonalAccessToken::where('tokenable_id', $target->user_id)->where('tokenable_type', User::class)->where('organization_id', $id)->delete();
             }

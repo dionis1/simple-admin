@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccessStatus;
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Membership extends Model
 {
+    use TransactionalAudit;
+
     protected $guarded = ['*'];
 
     protected function casts(): array

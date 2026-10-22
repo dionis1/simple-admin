@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -17,6 +18,8 @@ use Illuminate\Support\Carbon;
  */
 class Invitation extends Model
 {
+    use TransactionalAudit;
+
     protected $guarded = ['*'];
 
     protected $hidden = ['token_hash'];

@@ -31,7 +31,7 @@ class AssignTeamMember
                 throw ValidationException::withMessages(['team' => __('Transfer team ownership first.')]);
             }
             if ($remove) {
-                TeamMembership::where('team_id', $teamId)->where('membership_id', $membershipId)->delete();
+                TeamMembership::where('team_id', $teamId)->where('membership_id', $membershipId)->get()->each->delete();
             } elseif (! TeamMembership::where('team_id', $teamId)->where('membership_id', $membershipId)->exists()) {
                 $link = new TeamMembership;
                 $link->forceFill(['organization_id' => $org, 'team_id' => $teamId, 'membership_id' => $membershipId])->save();

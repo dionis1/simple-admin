@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Governance\TransactionalAudit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class RoleAssignment extends Model
 {
+    use TransactionalAudit;
+
     protected $guarded = ['*'];
 
     /** @return BelongsTo<Membership, $this> */

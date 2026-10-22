@@ -15,7 +15,7 @@ class SetLocale
         app()->setLocale(in_array($locale, ['en', 'de'], true) ? $locale : 'en');
 
         $response = $next($request);
-        if ($request->is('api/*', 'settings/*', 'user/two-factor-*', 'two-factor-challenge', 'invitations/accept/*')) {
+        if ($request->user() instanceof User || $request->is('api/*', 'settings/*', 'user/two-factor-*', 'two-factor-challenge', 'invitations/accept/*')) {
             $response->headers->set('Cache-Control', 'no-store, private');
             $response->headers->set('Referrer-Policy', 'no-referrer');
         }

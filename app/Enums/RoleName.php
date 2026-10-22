@@ -27,7 +27,7 @@ enum RoleName: string
         return match ($this) {
             self::Owner, self::Admin => PermissionKey::cases(),
             self::Manager => [PermissionKey::ViewTeams, PermissionKey::ManageTeams, PermissionKey::ViewDepartments, PermissionKey::ManageDepartments, PermissionKey::ViewDashboard, PermissionKey::ViewOrganization, PermissionKey::ViewMemberships, PermissionKey::ViewRoles, PermissionKey::ViewPermissions],
-            self::Support => [PermissionKey::ViewTeams, PermissionKey::ViewDepartments, PermissionKey::ViewDashboard, PermissionKey::ViewOrganization, PermissionKey::ViewMemberships],
+            self::Support => [PermissionKey::RequestSupport, PermissionKey::ViewTeams, PermissionKey::ViewDepartments, PermissionKey::ViewDashboard, PermissionKey::ViewOrganization, PermissionKey::ViewMemberships],
             self::Viewer => [PermissionKey::ViewTeams, PermissionKey::ViewDepartments, PermissionKey::ViewDashboard, PermissionKey::ViewOrganization],
         };
     }

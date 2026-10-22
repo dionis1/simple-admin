@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccessStatus;
+use App\Governance\TransactionalAudit;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
@@ -36,6 +37,8 @@ use Laravel\Sanctum\HasApiTokens;
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
+    use TransactionalAudit;
+
     protected $attributes = ['status' => 'active', 'locale' => 'en'];
 
     /** @use HasFactory<UserFactory> */

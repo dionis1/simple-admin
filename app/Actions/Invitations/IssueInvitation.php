@@ -30,7 +30,7 @@ class IssueInvitation
             if (Membership::where('organization_id', $organization->id)->whereHas('user', fn ($q) => $q->where('email', $email))->exists()) {
                 throw ValidationException::withMessages(['email' => __('This account already has a membership. Use lifecycle management instead.')]);
             }
-            Invitation::where('organization_id', $organization->id)->where('email', $email)->whereNull('accepted_at')->whereNull('revoked_at')->update(['revoked_at' => now()]);
+            Invitation::where('organization_id', $organization->id)->where('email', $email)->whereNull('accepted_at')->whereNull('revoked_at')->get()->each(fn (Invitation $old) => $old->forceFill(['revoked_at' => now()])->save());
             $token = Str::random(64);
             $invitation = new Invitation;
             $invitation->forceFill(['organization_id' => $organization->id, 'role_id' => $role->id, 'inviter_id' => $actor->id, 'email' => $email, 'token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours(48)])->save();

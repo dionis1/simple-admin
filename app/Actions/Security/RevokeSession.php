@@ -2,6 +2,7 @@
 
 namespace App\Actions\Security;
 
+use App\Governance\Audit;
 use App\Models\User;
 use App\Notifications\SecurityNotice;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ class RevokeSession
         $user = app(ConfirmPassword::class)($actor, $password);
         DB::transaction(function () use ($user, $id) {
             abort_unless(DB::table('sessions')->where('user_id', $user->id)->where('id', $id)->delete() > 0, 404);
+            app(Audit::class)->record('security.session_revoked', null, 'User', $user->id, [], $user);
             $user->forceFill(['remember_token' => Str::random(60)])->saveQuietly();
             $user->notify(new SecurityNotice('A browser session was revoked.'));
         });
