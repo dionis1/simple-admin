@@ -5,7 +5,7 @@
         @forelse ($memberships as $membership)
             <article wire:key="organization-{{ $membership->id }}" class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
                 <div><flux:heading level="2">{{ $membership->organization->name }}</flux:heading>
-                    <flux:text>{{ __('Membership') }}: {{ $membership->status->value }} · {{ __('Organization') }}: {{ $membership->organization->status->value }}</flux:text></div>
+                    <flux:text>{{ __('Membership') }}: {{ __(ucfirst($membership->status->value)) }} · {{ __('Organization') }}: {{ __(ucfirst($membership->organization->status->value)) }}</flux:text></div>
                 @if ($membership->status === \App\Enums\AccessStatus::Active && $membership->organization->status === \App\Enums\AccessStatus::Active)
                     <flux:button wire:click="choose({{ $membership->organization_id }})">{{ __('Open organization') }}</flux:button>
                 @endif

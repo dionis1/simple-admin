@@ -13,6 +13,7 @@
                     <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
                 </a>
                 <div class="flex flex-col gap-6">
+                    <x-language-switcher />
                     {{ $slot }}
                 </div>
             </div>

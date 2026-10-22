@@ -10,7 +10,7 @@ trait ResolvesUser
     protected function actor(): User
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->hasVerifiedEmail(), 403);
+        abort_unless($user instanceof User && $user->isActive() && $user->hasVerifiedEmail(), 403);
 
         return $user;
     }

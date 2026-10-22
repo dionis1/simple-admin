@@ -4,7 +4,7 @@
     <div class="grid gap-4 sm:grid-cols-2">
         @foreach ($roles as $role)
             <article wire:key="role-{{ $role->id }}" class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
-                <flux:heading level="2">{{ ucfirst($role->name->value) }}</flux:heading>
+                <flux:heading level="2">{{ __(ucfirst($role->name->value)) }}</flux:heading>
                 <ul class="mt-3 space-y-1 text-sm">
                     @foreach ($role->permissions as $permission)<li>{{ $permission->key }}</li>@endforeach
                 </ul>

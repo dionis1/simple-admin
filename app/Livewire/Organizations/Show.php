@@ -26,6 +26,7 @@ class Show extends Component
 
     public function save(UpdateOrganization $update): void
     {
+        $this->resetValidation();
         $update($this->actor(), $this->name);
         session()->flash('message', 'Organization updated.');
     }
