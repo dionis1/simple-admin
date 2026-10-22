@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Organizations\DeleteAccount;
 use App\Concerns\PasswordValidationRules;
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,8 @@ new class extends Component {
             'password' => $this->currentPasswordRules(),
         ]);
 
-        tap(Auth::user(), $logout(...))->delete();
+        app(DeleteAccount::class)(Auth::user());
+        $logout();
 
         $this->redirect('/', navigate: true);
     }

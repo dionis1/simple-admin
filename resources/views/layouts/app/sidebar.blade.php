@@ -12,6 +12,14 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
+                    <flux:sidebar.item icon="building-office" :href="route('organizations.index')" :current="request()->routeIs('organizations.index')" wire:navigate>{{ __('Switch organization') }}</flux:sidebar.item>
+                    @php($activeMembership = app(\App\Tenancy\TenantContext::class)->current(auth()->user()))
+                    @if ($activeMembership)
+                        <flux:sidebar.item :href="route('organization.show')" :current="request()->routeIs('organization.show')" wire:navigate>{{ $activeMembership->organization()->firstOrFail()->name }}</flux:sidebar.item>
+                        @can('viewAny', \App\Models\Membership::class)<flux:sidebar.item :href="route('memberships.index')" :current="request()->routeIs('memberships.index')" wire:navigate>{{ __('Memberships') }}</flux:sidebar.item>@endcan
+                        @can('viewAny', \App\Models\Role::class)<flux:sidebar.item :href="route('roles.index')" :current="request()->routeIs('roles.index')" wire:navigate>{{ __('Roles') }}</flux:sidebar.item>@endcan
+                        @can('viewAny', \App\Models\Permission::class)<flux:sidebar.item :href="route('permissions.index')" :current="request()->routeIs('permissions.index')" wire:navigate>{{ __('Permissions') }}</flux:sidebar.item>@endcan
+                    @endif
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
