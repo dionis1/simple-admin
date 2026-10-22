@@ -2,7 +2,7 @@
 
 ## Scope and architecture
 
-This is a Laravel 13 / PHP 8.3+ modular monolith built from the official Livewire 4 starter kit, with Tailwind 4, plain Vite, PostgreSQL, and Redis. Phase 3 includes invitations, membership lifecycle, teams/departments, MFA, sessions, API tokens and English/German interfaces. Custom-role editing, audit workflows and business modules remain out of scope. Read docs/identity.md before changing identity behavior.
+This is a Laravel 13 / PHP 8.3+ modular monolith built from the official Livewire 4 starter kit, with Tailwind 4, plain Vite, PostgreSQL, and Redis. Phase 3 includes invitations, membership lifecycle, teams/departments, MFA, sessions, API tokens and English/German interfaces. Phase 4 adds governance, restricted support view, audit history and operational quality. Custom-role editing and business modules remain out of scope. Read docs/governance.md and docs/threat-model.md before changing governance behavior. Read docs/identity.md before changing identity behavior.
 
 Keep cohesive behavior inside the application; no microservices, generic repositories, or speculative interfaces. Reuse Laravel validation, Eloquent, policies, transactions, notifications, and queue facilities. Fortify actions belong in `app/Actions/Fortify`; account Livewire components belong in `resources/views/pages/settings`; shared UI belongs in layouts/components. Introduce domain-specific modules only as actual domain behavior arrives.
 
@@ -48,3 +48,13 @@ Docker Compose serves local development only. Basic GitHub Actions CI verifies P
 - Security credential changes revoke other sessions and API tokens. Show plaintext tokens once only. Use opaque session references in the UI.
 - Keep English/German catalogs aligned. Use queued security notifications; local mail defaults to log. Never commit test credentials or invitation links.
 - Run PostgreSQL concurrency tests serially; they verify invitation and recovery-code single use as well as final-owner protection.
+
+## Governance conventions
+
+- `TransactionalAudit` guarantees audited Eloquent saves/deletes share a transaction with audit insertion. Never write secrets or arbitrary nested data into audit changes; extend the structural allowlist deliberately and test redaction. Query-builder/pivot mutations bypass observers, so add explicit safe aggregate events where required.
+- Audit history and CSV exports require their own policies and tenant-scoped queries. Never expose global account events, raw failed job payloads or exception messages to tenant administrators. Do not weaken the append-only PostgreSQL trigger to simplify tests.
+- Approval payloads are built server-side. Decisions lock organization then request, recheck requester/reviewer authority, prohibit self/subject review, and execute atomically. Current workflows cover organization-wide token revocation and support access only. New approval operations must enforce the workflow at their underlying mutation boundary.
+- Support view keeps the real operator authenticated. Never call loginAs for the subject. Require independent approval and fresh password/TOTP, validate one-session grants on every request, retain the read-only route/permission allowlist and clear banner. All POST/Livewire writes except stopping are blocked in support mode.
+- Local JSON security logs contain minimal event metadata; never request bodies, tokens, URLs or private audit changes. Correlation IDs are generated server-side. Queue incident UI is scoped by trusted enqueue metadata and sanitized.
+- Keep production claims tied to verified evidence. See docs/operations.md for deployment/restore prerequisites. Do not run destructive tests or restore commands against the application's database.
+- In addition to composer check, run npm run lint/build, composer audit --locked, npm audit --audit-level=low and view compilation when relevant. Run new governance concurrency tests serially against the dedicated PostgreSQL test database.

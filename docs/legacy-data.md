@@ -35,3 +35,7 @@ Existing users receive no automatic organization membership or inherited global 
 ## Phase 3 identity migration
 
 New invitations, departments, teams, team memberships and personal access token tables must be checked for name/schema collisions before migrating a legacy database. Existing users receive active/en defaults; this does not import legacy administrative privileges. Back up and rehearse the migration in staging. Preserve APP_KEY for encrypted MFA secrets and queued notifications. Rollback drops Phase 3 security/structure data and is not a safe production recovery strategy. No production import or production rollback has been verified.
+
+## Phase 4 governance migration
+
+Review the new audit_events, approval_requests, support_grants and queue_incidents names and the application-owned PostgreSQL audit trigger/function for collisions. Audit evidence is intentionally non-cascading and append-only. The additive migration grants six new permissions according to fixed role definitions. Rehearse it on a restored copy; do not assume legacy privileges have been imported. Down destroys governance evidence and is not a production recovery plan. See operations.md.

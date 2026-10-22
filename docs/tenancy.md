@@ -1,6 +1,6 @@
 # Organization access and authorization
 
-Phase 2 foundation with Phase 3 extensions. See [identity management](identity.md) for lifecycle, invitations, teams, MFA and token boundaries.
+Phase 2 foundation with Phase 3 identity and Phase 4 governance extensions. See [governance](governance.md) for the additional permission matrix and support-view boundaries. See [identity management](identity.md) for lifecycle, invitations, teams, MFA and token boundaries.
 
 ## Context and trust boundaries
 
@@ -39,7 +39,7 @@ Permission checks are necessary but are supplemented by assignment and target hi
 - Owners may manage other members and assign any built-in role in their organization.
 - Admins may assign/manage Manager, Support, and Viewer. They cannot assign Owner/Admin, modify peer Admins, or modify Owners.
 - Users cannot change their own role, including self-promotion or self-demotion. New-organization Owner provisioning is the explicit bootstrap exception; it creates no privileges in any other organization.
-- Adding a member requires a verified, already registered account, selected by exact normalized email. Duplicate memberships and unknown/unverified accounts are rejected. Phase 3 also supports invitations. Password reset administration and impersonation remain excluded.
+- Adding a member requires a verified, already registered account, selected by exact normalized email. Duplicate memberships and unknown/unverified accounts are rejected. Phase 3 also supports invitations. Password reset administration remains excluded; Phase 4 adds independently approved read-only support view.
 - Membership suspension takes effect on subsequent authorization. Reactivation restores that membership's existing or explicitly selected authorized role. Organization suspension is supported as an access state but no suspension-management workflow is included.
 
 ## Ownership and transactions
@@ -67,4 +67,4 @@ The Pest suite checks the role/permission matrix and all 25 role/page combinatio
 
 Run the suite serially on the dedicated `simple_admin_testing` PostgreSQL database. Concurrency workers refuse to run against any other database name/environment. Runtime lock markers are temporary files and are cleaned up. See the README verification commands.
 
-Audit workflows, custom-role editing, organization lifecycle screens, business CRUD and production legacy-data migration remain excluded. Global inactive users cannot authorize tenant operations; team ownership must be transferred before disabling or removing its owner. See `legacy-data.md` before applying these table names to a legacy installation.
+Custom-role editing, organization lifecycle screens, business CRUD and production legacy-data migration remain excluded. Phase 4 adds audit history and two bounded approval operations; see governance.md. Global inactive users cannot authorize tenant operations; team ownership must be transferred before disabling or removing its owner. See `legacy-data.md` before applying these table names to a legacy installation.

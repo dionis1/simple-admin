@@ -1,14 +1,14 @@
-# Simple Admin — Phase 3
+# Simple Admin — Phase 4
 
 A Laravel 13 modular monolith built from the [official Livewire starter kit](https://github.com/laravel/livewire-starter-kit). PHP 8.3+ (Docker uses 8.4), Livewire 4, Flux UI, Tailwind CSS 4, Vite, PostgreSQL 17, and Redis 7.4.
 
-Phase 1 replaced the Laravel 5.6 / jamesmills admin / Bootstrap / Vue 2 / Mix foundation. Phase 2 adds secure organization membership and tenant-aware authorization. Git history and the original user migration identities remain intact. **Verified users must select an active organization membership before accessing its dashboard or administration screens.**
+Phase 1 replaced the Laravel 5.6 / jamesmills admin / Bootstrap / Vue 2 / Mix foundation. Phase 2 adds secure organization membership and tenant-aware authorization. Phase 3 adds identity management; Phase 4 adds governance, restricted support access and quality gates. Git history and the original user migration identities remain intact. **Verified users must select an active organization membership before accessing its dashboard or administration screens.**
 
 ## Included
 
 - Fortify session authentication: registration, sign-in/out, password reset, email verification, and login throttling.
 - Starter-kit account/profile, password confirmation/change, account deletion, and appearance settings.
-- Responsive sidebar, mobile navigation, account menu, and dashboard placeholder.
+- Responsive sidebar, mobile navigation, account menu, and permission-scoped activity dashboard.
 - PostgreSQL persistence, database sessions, Redis cache and queue connection.
 - Pest with starter-kit authentication/Livewire tests, Pint, Larastan level 7, and basic GitHub Actions checks.
 - No seeded accounts or default application passwords. Registration creates an unverified user.
@@ -54,7 +54,7 @@ docker compose up -d app worker
 
 Do not use `docker compose down -v` unless you deliberately want to delete this project's local database/cache volumes. Keep your existing APP_KEY; rotating it invalidates encrypted sessions.
 
-For frontend development run `docker compose run --rm --no-deps node npm run build` after changes, or use Node 22.12+ locally with `npm run dev`. This setup does not publish a container Vite development server. The worker processes queued invitations and security notifications. Restart it after changing PHP code: `docker compose restart worker`. Default mail is logged locally; configure SMTP for external delivery.
+For frontend development run `docker compose run --rm --no-deps node npm run build` after changes, or use Node 22.13+ (22.x) or 24+ locally with `npm run dev`. This setup does not publish a container Vite development server. The worker processes queued invitations and security notifications. Restart it after changing PHP code: `docker compose restart worker`. Default mail is logged locally; configure SMTP for external delivery.
 
 ## Verification
 
@@ -64,7 +64,7 @@ Tests use a **separate PostgreSQL database**, `simple_admin_testing`, forced in 
 docker compose exec postgres sh -c 'createdb -U "$POSTGRES_USER" simple_admin_testing'
 ```
 
-The [Phase 3 verification record](docs/phase-3-verification.md) lists completed checks and remaining limitations. Run the same checks used by CI:
+The [Phase 4 verification record](docs/phase-4-verification.md) lists completed checks and remaining limitations. Run the same checks used by CI:
 
 ```bash
 docker compose run --rm app php artisan migrate
@@ -103,9 +103,9 @@ Use Laravel-native validation, policies when domain resources arrive, transactio
 
 Read [the legacy data migration limitations](docs/legacy-data.md) **before using an existing database**. This is a new application foundation, not a verified in-place production upgrade or a MySQL-to-PostgreSQL importer. No production database was accessed or modified. The local setup creates a new, namespaced PostgreSQL volume.
 
-## Scope after Phase 3
+## Scope after Phase 4
 
-The dashboard still contains business placeholders. Custom-role editing, audit workflows, organization suspension/deletion screens, business CRUD, analytics, production deployment, and legacy data import remain future work. Account self-deletion remains blocked while memberships exist.
+The dashboard now shows permission-scoped activity, invitations, approvals, security events and service health. Custom-role editing, organization suspension/deletion screens, business CRUD, analytics, production deployment, and legacy data import remain future work. Account self-deletion remains blocked while memberships exist.
 
 ## Identity management
 
@@ -114,3 +114,26 @@ Phase 3 adds expiring single-use invitations, organization-scoped membership pro
 See [identity management](docs/identity.md) for security decisions, account lifecycle, API endpoints and operational instructions. Organization administrators manage memberships rather than disabling a person's identity across unrelated organizations. Global account deactivation/reactivation is self-service; global suspension is a trusted operator state.
 
 Fortify two-factor authentication, excluded in Phase 1, is enabled in Phase 3. Passkeys remain excluded. No default accounts or passwords are provided.
+
+## Governance and operational quality
+
+- Structured, redacted audit events with actor/tenant/target/correlation identifiers and transactional persistence; PostgreSQL rejects audit row updates/deletes.
+- Independent approval for organization-wide API token revocation and temporary support access, with explicit states, expiry and concurrency protection.
+- Read-only support view with password + confirmed TOTP step-up, independent reviewer, one-session binding, a 15-minute deadline, visible banner and audited access.
+- Searchable tenant audit history and separately permission-controlled, bounded CSV exports.
+- `/up` liveness, generic `/ready` dependency/worker readiness, JSON security logs and sanitized tenant queue failures.
+- CI gates for Pest, Pint, Larastan, ESLint, frontend build, Blade compilation and Composer/npm dependency scans.
+
+See [governance and exact workflow scope](docs/governance.md), [threat model](docs/threat-model.md), [API examples](docs/api-examples.md), and [deployment, backup restoration and migration safety](docs/operations.md). The provided Compose setup remains local development only; this phase does not establish production readiness.
+
+After updating an existing local checkout:
+
+```bash
+docker compose exec app php artisan migrate
+docker compose run --rm --no-deps node npm ci
+docker compose run --rm --no-deps node npm run lint
+docker compose run --rm --no-deps node npm run build
+docker compose restart worker
+```
+
+Visit Dashboard, Audit history or Approvals according to your membership permissions. Two distinct authorized accounts are needed to review an approval; no default credentials are supplied. Support operators must enroll and confirm TOTP on their own account before starting an approved support grant.
