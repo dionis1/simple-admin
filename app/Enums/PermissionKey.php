@@ -4,6 +4,11 @@ namespace App\Enums;
 
 enum PermissionKey: string
 {
+    case ManageInvitations = 'invitations.manage';
+    case ViewTeams = 'teams.view';
+    case ManageTeams = 'teams.manage';
+    case ViewDepartments = 'departments.view';
+    case ManageDepartments = 'departments.manage';
     case ViewDashboard = 'dashboard.view';
     case ViewOrganization = 'organizations.view';
     case UpdateOrganization = 'organizations.update';

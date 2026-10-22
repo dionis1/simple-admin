@@ -24,10 +24,10 @@ class AddMembership
             $role = $organization->roles()->findOrFail($roleId);
             Gate::forUser($actor)->authorize('create', [RoleAssignment::class, $role]);
             Validator::make(['email' => $email], ['email' => ['required', 'email', 'max:255']])->validate();
-            $user = User::query()->where('email', strtolower(trim($email)))->whereNotNull('email_verified_at')->lockForUpdate()->first();
+            $user = User::query()->where('email', strtolower(trim($email)))->whereNotNull('email_verified_at')->where('status', AccessStatus::Active)->lockForUpdate()->first();
 
             if (! $user || $organization->memberships()->where('user_id', $user->id)->exists()) {
-                throw ValidationException::withMessages(['email' => 'Choose a verified existing account that is not already a member.']);
+                throw ValidationException::withMessages(['email' => __('Choose a verified existing account that is not already a member.')]);
             }
 
             $membership = new Membership;

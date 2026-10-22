@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
+ * @property string|null $display_name
+ * @property string|null $job_title
  * @property int $id
  * @property int $organization_id
  * @property int $user_id
@@ -18,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Membership extends Model
 {
-    protected $guarded = ['id', 'organization_id', 'user_id', 'status'];
+    protected $guarded = ['*'];
 
     protected function casts(): array
     {

@@ -3,6 +3,7 @@
 namespace App\Actions\Memberships;
 
 use App\Models\Organization;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Tenancy\OwnerProtection;
 use App\Tenancy\TenantContext;
@@ -19,6 +20,7 @@ class RemoveMembership
             $target = $organization->memberships()->findOrFail($membershipId);
             Gate::forUser($actor)->authorize('delete', $target);
             app(OwnerProtection::class)->ensureMayChange($target, null, null);
+            PersonalAccessToken::where('tokenable_id', $target->user_id)->where('tokenable_type', User::class)->where('organization_id', $id)->delete();
             $target->delete();
         });
     }

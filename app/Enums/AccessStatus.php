@@ -6,4 +6,5 @@ enum AccessStatus: string
 {
     case Active = 'active';
     case Suspended = 'suspended';
+    case Deactivated = 'deactivated';
 }

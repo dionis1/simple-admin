@@ -13,9 +13,9 @@ class TenantContext
 
     public function current(User $user): ?Membership
     {
-        $id = session(self::SESSION_KEY);
+        $id = request()->is('api/*') ? request()->attributes->get('api_organization_id') : session(self::SESSION_KEY);
 
-        if (! $user->hasVerifiedEmail() || ! is_int($id) || $id < 1) {
+        if (! $user->isActive() || ! $user->hasVerifiedEmail() || ! is_int($id) || $id < 1) {
             return null;
         }
 
@@ -38,6 +38,10 @@ class TenantContext
     {
         $membership = $this->current($user);
         $key = $permission instanceof PermissionKey ? $permission->value : $permission;
+
+        if (request()->attributes->has('api_organization_id') && ! $user->tokenCan($key)) {
+            return false;
+        }
 
         return $membership?->assignedRole()?->permissions()->where('key', $key)->exists() ?? false;
     }

@@ -17,6 +17,11 @@ class MembershipPolicy
         return $this->context->allows($user, PermissionKey::ViewMemberships);
     }
 
+    public function view(User $user, Membership $membership): bool
+    {
+        return $this->context->current($user)?->organization_id === $membership->organization_id && $this->viewAny($user);
+    }
+
     public function create(User $user): bool
     {
         return $this->context->allows($user, PermissionKey::CreateMemberships);

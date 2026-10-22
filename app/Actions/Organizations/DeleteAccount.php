@@ -14,7 +14,7 @@ class DeleteAccount
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
 
             if ($locked->memberships()->exists()) {
-                throw ValidationException::withMessages(['password' => 'Remove your organization memberships before deleting your account. Transfer ownership first if necessary.']);
+                throw ValidationException::withMessages(['password' => __('Remove your organization memberships before deleting your account. Transfer ownership first if necessary.')]);
             }
 
             $locked->delete();

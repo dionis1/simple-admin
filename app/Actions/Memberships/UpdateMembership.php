@@ -4,8 +4,10 @@ namespace App\Actions\Memberships;
 
 use App\Enums\AccessStatus;
 use App\Models\Organization;
+use App\Models\PersonalAccessToken;
 use App\Models\RoleAssignment;
 use App\Models\User;
+use App\Notifications\SecurityNotice;
 use App\Tenancy\OwnerProtection;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -33,8 +35,15 @@ class UpdateMembership
 
             Validator::make(['status' => $status], ['status' => [Rule::enum(AccessStatus::class)]])->validate();
             app(OwnerProtection::class)->ensureMayChange($target, $role->name, AccessStatus::from($status));
+            $changed = $target->status->value !== $status || $currentRole->id !== $role->id;
             $target->forceFill(['status' => $status])->save();
             $target->roleAssignment()->update(['role_id' => $role->id]);
+            if ($status !== 'active' || $currentRole->id !== $role->id) {
+                PersonalAccessToken::where('tokenable_id', $target->user_id)->where('tokenable_type', User::class)->where('organization_id', $id)->delete();
+            }
+            if ($changed) {
+                $target->user()->firstOrFail()->notify(new SecurityNotice('Your organization membership access changed.'));
+            }
         });
     }
 }
