@@ -11,6 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17-alpine
@@ -50,8 +51,12 @@ jobs:
       - run: composer install --no-interaction --prefer-dist
       - run: php artisan key:generate
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
+      - run: npm audit --audit-level=low
+      - run: composer audit --locked --no-interaction
       - run: php artisan migrate --force
+      - run: php artisan view:cache
       - run: composer check
       - name: Redis connectivity
         run: php artisan app:check-redis
