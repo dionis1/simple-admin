@@ -22,7 +22,7 @@ it('atomically creates a workspace with fixed roles permissions and one owner', 
     expect($organization->roles()->count())->toBe(5)
         ->and($organization->memberships()->count())->toBe(1)
         ->and(app(TenantContext::class)->resolve($owner)->assignedRole()->name)->toBe(RoleName::Owner);
-    $this->assertDatabaseCount('permissions', 10);
+    $this->assertDatabaseCount('permissions', 15);
     $this->assertDatabaseCount('role_assignments', 1);
 });
 

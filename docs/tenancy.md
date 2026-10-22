@@ -1,4 +1,6 @@
-# Organization access and authorization — Phase 2
+# Organization access and authorization
+
+Phase 2 foundation with Phase 3 extensions. See [identity management](identity.md) for lifecycle, invitations, teams, MFA and token boundaries.
 
 ## Context and trust boundaries
 
@@ -26,6 +28,9 @@ The organization picker and personal account settings deliberately do not requir
 | roles.view | Yes | Yes | Yes | No | No |
 | roles.assign | Yes | Yes | No | No | No |
 | permissions.view | Yes | Yes | Yes | No | No |
+| invitations.manage | Yes | Yes | No | No | No |
+| teams.view / departments.view | Yes | Yes | Yes | Yes | Yes |
+| teams.manage / departments.manage | Yes | Yes | Yes | No | No |
 
 Permission keys are seeded by the additive migration. Each organization receives its own five roles and role-permission links. The role and permission interfaces are read-only catalogs, not permission editors. There is no implicit global Owner/Admin override and no custom role builder.
 
@@ -34,7 +39,7 @@ Permission checks are necessary but are supplemented by assignment and target hi
 - Owners may manage other members and assign any built-in role in their organization.
 - Admins may assign/manage Manager, Support, and Viewer. They cannot assign Owner/Admin, modify peer Admins, or modify Owners.
 - Users cannot change their own role, including self-promotion or self-demotion. New-organization Owner provisioning is the explicit bootstrap exception; it creates no privileges in any other organization.
-- Adding a member requires a verified, already registered account, selected by exact normalized email. Duplicate memberships and unknown/unverified accounts are rejected. There is no invitation, password reset administration, or account impersonation flow.
+- Adding a member requires a verified, already registered account, selected by exact normalized email. Duplicate memberships and unknown/unverified accounts are rejected. Phase 3 also supports invitations. Password reset administration and impersonation remain excluded.
 - Membership suspension takes effect on subsequent authorization. Reactivation restores that membership's existing or explicitly selected authorized role. Organization suspension is supported as an access state but no suspension-management workflow is included.
 
 ## Ownership and transactions
@@ -58,8 +63,8 @@ The guarantee applies to the application's supported mutation paths. Direct priv
 
 ## Verification and scope
 
-The Pest suite checks all 50 role/permission decisions and all 25 role/page combinations, plus forged IDs, mixed-organization ownership, switching, suspended/unassigned memberships, stale Livewire actions, input validation, assignment hierarchy, SQL constraints, account deletion, and final-owner cases. Concurrent-owner tests start independent PHP processes, hold the organization row in the parent connection, confirm both workers are blocked on PostgreSQL locks, then release them and assert exactly one mutation succeeds with one active Owner remaining.
+The Pest suite checks the role/permission matrix and all 25 role/page combinations, plus forged IDs, mixed-organization ownership, switching, suspended/unassigned memberships, stale Livewire actions, input validation, assignment hierarchy, SQL constraints, account deletion, and final-owner cases. Concurrent-owner tests start independent PHP processes, hold the organization row in the parent connection, confirm both workers are blocked on PostgreSQL locks, then release them and assert exactly one mutation succeeds with one active Owner remaining.
 
 Run the suite serially on the dedicated `simple_admin_testing` PostgreSQL database. Concurrency workers refuse to run against any other database name/environment. Runtime lock markers are temporary files and are cleaned up. See the README verification commands.
 
-Phase 2 adds no audit workflows, custom-role editing, invitations, organization lifecycle workflows, advanced account management, business CRUD, or production legacy-data migration. See `legacy-data.md` before applying these table names to a legacy installation.
+Audit workflows, custom-role editing, organization lifecycle screens, business CRUD and production legacy-data migration remain excluded. Global inactive users cannot authorize tenant operations; team ownership must be transferred before disabling or removing its owner. See `legacy-data.md` before applying these table names to a legacy installation.

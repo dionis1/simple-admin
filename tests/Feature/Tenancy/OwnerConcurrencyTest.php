@@ -29,7 +29,7 @@ it('serializes concurrent owner changes and retains one active owner', function 
             $worker = new Process([PHP_BINARY, base_path('tests/Support/owner-race.php'), (string) $membership->user_id,
                 (string) $organization->id, (string) $membership->id, (string) $role->id, $operation, $marker, $tag], base_path(), [
                     'APP_ENV' => 'testing', 'DB_CONNECTION' => 'pgsql', 'DB_DATABASE' => 'simple_admin_testing',
-                    'DB_URL' => '', 'SESSION_DRIVER' => 'array', 'CACHE_STORE' => 'array',
+                    'DB_URL' => '', 'SESSION_DRIVER' => 'array', 'CACHE_STORE' => 'array', 'QUEUE_CONNECTION' => 'sync', 'MAIL_MAILER' => 'array',
                 ]);
             $worker->setTimeout(30)->start();
             $workers[] = $worker;

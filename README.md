@@ -1,4 +1,4 @@
-# Simple Admin — Phase 2
+# Simple Admin — Phase 3
 
 A Laravel 13 modular monolith built from the [official Livewire starter kit](https://github.com/laravel/livewire-starter-kit). PHP 8.3+ (Docker uses 8.4), Livewire 4, Flux UI, Tailwind CSS 4, Vite, PostgreSQL 17, and Redis 7.4.
 
@@ -33,7 +33,7 @@ docker compose run --rm --no-deps app php artisan key:generate
 docker compose run --rm app php artisan migrate
 docker compose run --rm --no-deps node npm ci
 docker compose run --rm --no-deps node npm run build
-docker compose up -d app
+docker compose up -d app worker
 ```
 
 Open [localhost:8000](http://localhost:8000). `APP_PORT` changes the host port; update `APP_URL` to match. PostgreSQL and Redis are internal services without published host ports. The PHP development server and bind mounts are for local use.
@@ -49,12 +49,12 @@ tail -f storage/logs/laravel.log
 # Stop services and release their RAM; persisted data remains.
 docker compose down
 # Start again without reinstalling:
-docker compose up -d app
+docker compose up -d app worker
 ```
 
 Do not use `docker compose down -v` unless you deliberately want to delete this project's local database/cache volumes. Keep your existing APP_KEY; rotating it invalidates encrypted sessions.
 
-For frontend development run `docker compose run --rm --no-deps node npm run build` after changes, or use Node 22.12+ locally with `npm run dev`. This setup does not publish a container Vite development server. Redis queue support is configured; no business background jobs or permanent worker service are included. To process future jobs locally: `docker compose run --rm app php artisan queue:work`.
+For frontend development run `docker compose run --rm --no-deps node npm run build` after changes, or use Node 22.12+ locally with `npm run dev`. This setup does not publish a container Vite development server. The worker processes queued invitations and security notifications. Restart it after changing PHP code: `docker compose restart worker`. Default mail is logged locally; configure SMTP for external delivery.
 
 ## Verification
 
@@ -64,7 +64,7 @@ Tests use a **separate PostgreSQL database**, `simple_admin_testing`, forced in 
 docker compose exec postgres sh -c 'createdb -U "$POSTGRES_USER" simple_admin_testing'
 ```
 
-The [Phase 2 verification record](docs/phase-2-verification.md) lists completed checks and remaining limitations. Run the same checks used by CI:
+The [Phase 3 verification record](docs/phase-3-verification.md) lists completed checks and remaining limitations. Run the same checks used by CI:
 
 ```bash
 docker compose run --rm app php artisan migrate
@@ -103,6 +103,14 @@ Use Laravel-native validation, policies when domain resources arrive, transactio
 
 Read [the legacy data migration limitations](docs/legacy-data.md) **before using an existing database**. This is a new application foundation, not a verified in-place production upgrade or a MySQL-to-PostgreSQL importer. No production database was accessed or modified. The local setup creates a new, namespaced PostgreSQL volume.
 
-## Scope after Phase 2
+## Scope after Phase 3
 
-The dashboard still contains business placeholders. Custom-role/permission editing, organization suspension/deletion workflows, invitations, audit workflows, advanced account management, business CRUD, analytics, production deployment, and legacy data import remain future work. Organization memberships link already registered, verified accounts; no password or account administration is added. Account self-deletion is blocked while any membership exists, including suspended memberships, so it cannot bypass ownership rules.
+The dashboard still contains business placeholders. Custom-role editing, audit workflows, organization suspension/deletion screens, business CRUD, analytics, production deployment, and legacy data import remain future work. Account self-deletion remains blocked while memberships exist.
+
+## Identity management
+
+Phase 3 adds expiring single-use invitations, organization-scoped membership profiles and lifecycle management, departments, teams and ownership, atomic permission-checked bulk operations, English/German interfaces, native Fortify TOTP and recovery codes, session revocation, and scoped Sanctum API tokens. Search, filters, sorting and pagination are available on management screens.
+
+See [identity management](docs/identity.md) for security decisions, account lifecycle, API endpoints and operational instructions. Organization administrators manage memberships rather than disabling a person's identity across unrelated organizations. Global account deactivation/reactivation is self-service; global suspension is a trusted operator state.
+
+Fortify two-factor authentication, excluded in Phase 1, is enabled in Phase 3. Passkeys remain excluded. No default accounts or passwords are provided.
