@@ -1,0 +1,59 @@
+name: simple-admin
+
+services:
+  app:
+    build: .
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+    environment:
+      COMPOSER_HOME: /tmp/composer
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    init: true
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-simple_admin}
+      POSTGRES_USER: ${DB_USERNAME:-simple_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-local-only-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-testing.sql:/docker-entrypoint-initdb.d/10-testing.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  node:
+    image: node:22-bookworm-slim
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      npm_config_cache: /tmp/npm-cache
+    profiles: [tools]
+    command: ["npm", "run", "build"]
+
+volumes:
+  postgres_data:
+  redis_data:
